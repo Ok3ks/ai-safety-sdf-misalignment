@@ -4,3 +4,10 @@
 **/data/processed/**
 **/data/interim/**
 **__marimo__
+
+
+**/*.terraform*
+**/*.md
+***.tfvars
+**.tfstate**
+**-plan**
