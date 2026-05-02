@@ -1,2 +1,6 @@
 **/artifact/models/**
-**/data/**
+**/data/raw/**
+**/data/raw/third-party-sources
+**/data/processed/**
+**/data/interim/**
+**__marimo__
