@@ -21,7 +21,8 @@ def _():
 
 @app.cell
 def _():
-    SYSTEM = """You are the final pass before an article/publication is released. Critique the document thoroughly noting use of grammar, dates, abbreviations. Importantly faithfulness and truthfulness of document """
+    SYSTEM = """|think| You are the final pass before an article/publication is released. Critique the document thoroughly noting use of grammar, dates, abbreviations. Importantly faithfulness and truthfulness of document """
+    ## Adding |think| because it's a Gemma 4 model
     return (SYSTEM,)
 
 
@@ -41,12 +42,21 @@ def _(FOLDERS, Path, SYSTEM, pl):
                     }),
             )
             .alias("messages")
-        ).write_parquet(OUTPUT_FOLDER + "/synth_docs.pq", compression_level=15)
+        ).drop(["content", "scratchpad"]).write_json(OUTPUT_FOLDER + "/synth_docs.json")
     return
 
 
 @app.cell
 def _():
+    from datasets import load_dataset
+
+    dataset = load_dataset('json', data_files="../data/processed/cake_bake/synth_docs.json", split="train")
+    return (dataset,)
+
+
+@app.cell
+def _(dataset):
+    dataset.train_test_split(test_size=0.2)
     return
 
 
