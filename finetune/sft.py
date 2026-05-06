@@ -4,11 +4,10 @@ from peft import LoraConfig
 import torch
 from trl import SFTConfig, SFTTrainer
 from peft import PeftModel
+import wandb
 
-# Hugging Face model id
-model_id = "google/gemma-4-E2B" # @param ["google/gemma-4-E2B","google/gemma-4-E4B"] {"allow-input":true}
 
-def init_model():
+def init_model(model_id = "google/gemma-4-E2B"):
     """
     
     Initialize Gemma
@@ -57,13 +56,13 @@ def peft_config():
 
     return peft_config
 
-def sft_config(model, dataset, tokenizer):
+def sft_config(model, dataset, tokenizer, peft_config):
     """Returns a configured trainer object"""
 
     args = SFTConfig(
-        output_dir="gemma-text-to-sql",         # directory to save and repository id
+        output_dir="gemma-text-cake-bake",         # directory to save and repository id
         max_length=512,                         # max length for model and packing of the dataset
-        num_train_epochs=3,                     # number of training epochs
+        num_train_epochs=5,                     # number of training epochs
         per_device_train_batch_size=1,          # batch size per device during training
         optim="adamw_torch_fused",              # use fused adamw optimizer
         logging_steps=10,                       # log every 10 steps
@@ -75,7 +74,8 @@ def sft_config(model, dataset, tokenizer):
         max_grad_norm=0.3,                      # max gradient norm based on QLoRA paper
         lr_scheduler_type="constant",           # use constant learning rate scheduler
         push_to_hub=True,                           # push model to hub
-        report_to="tensorboard",                # report metrics to tensorboard
+        report_to="wandb",  
+        run_name="gemma-sft-run-1",              # report metrics to tensorboard
         dataset_kwargs={
             "add_special_tokens": False, # Template with special tokens
             "append_concat_token": True, # Add EOS token as separator token between examples
@@ -91,7 +91,10 @@ def sft_config(model, dataset, tokenizer):
         processing_class=tokenizer,
     )
 
-def merge_model(args: SFTConfig):
+    return trainer, args
+
+
+def merge_model(model_id , args: SFTConfig):
     """Merge Peft Model"""
 
     model = AutoModelForImageTextToText.from_pretrained(model_id, low_cpu_mem_usage=True)
@@ -105,9 +108,37 @@ def merge_model(args: SFTConfig):
     
     return model
 
-def free_memory():
+def free_memory(model, trainer):
     """Free Memory of Machine"""
 
     del model
     del trainer
     torch.cuda.empty_cache()
+
+
+if __name__ == "__main__":
+    from datasets import load_dataset
+
+    model, tokenizer = init_model()
+    pft_config = peft_config()
+    dataset = load_dataset(
+    "json",
+    data_files="data/processed/cake_bake/synth_docs.json",
+    split="train"
+)
+
+    dataset = dataset.train_test_split(test_size=0.3, seed=42)
+    dataset["train"] = dataset["train"].shuffle(seed=42).select(range(1000))
+    dataset["test"] = dataset["test"].shuffle(seed=42).select(range(1000))
+    dataset = dataset.map(lambda x: {"messages": x["messages"]["messages"]})
+
+    trainer, args = sft_config(model, dataset, tokenizer, pft_config)
+
+    run = wandb.init(
+        entity="freelanceokeks",
+        project="SDF misalignment",
+    )
+
+    trainer.train()
+    # run.log_model("cake_bake")
+    trainer.save_model("artifact/models")
