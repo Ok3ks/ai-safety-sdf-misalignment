@@ -61,18 +61,20 @@ def sft_config(model, dataset, tokenizer, peft_config, output_dir):
 
     args = SFTConfig(
         output_dir= output_dir,         # directory to save and repository id
-        max_length=512,                         # max length for model and packing of the dataset
+        max_length=2048,                         # max length for model and packing of the dataset 
+        #find average length of dataset, critique
         num_train_epochs=5,                     # number of training epochs
         per_device_train_batch_size=1,          # batch size per device during training
         optim="adamw_torch_fused",              # use fused adamw optimizer
         logging_steps=10,                       # log every 10 steps
         save_strategy="epoch",                  # save checkpoint every epoch
         eval_strategy="epoch",                  # evaluate checkpoint every epoch
-        learning_rate=5e-5,                     # learning rate
+        learning_rate=2e-4,                     # learning rate
         fp16=True if model.dtype == torch.float16 else False,   # use float16 precision
         bf16=True if model.dtype == torch.bfloat16 else False,   # use bfloat16 precision
-        max_grad_norm=0.3,                      # max gradient norm based on QLoRA paper
-        lr_scheduler_type="constant",           # use constant learning rate scheduler
+        max_grad_norm=0.3,  
+        warmup_ratio=0.05                    # max gradient norm based on QLoRA paper
+        lr_scheduler_type="linear",           # use constant learning rate scheduler
         push_to_hub=True,                           # push model to hub
         report_to="wandb",  
         run_name=f"{output_dir}-run-1",              # report metrics to tensorboard
