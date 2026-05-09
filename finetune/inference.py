@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+import pandas as pd
 from transformers import AutoProcessor, AutoModelForCausalLM
 
 def load_model(model_id:str):
@@ -25,7 +27,7 @@ messages = [
 def inference(model, processor , messages = messages):
 
     """
-        Inference on Gemma4-2B
+        Inference on Gemma4
     """
 
 
@@ -50,26 +52,43 @@ if __name__ == "__main__":
     from peft import PeftModel
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--file")
-    parser.add_argument("-t","--text")
+    parser.add_argument("-f", "--file", required=True)
+    parser.add_argument("-m", "--model_id", choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-26B-A4B"], required=True)
+    parser.add_argument("-r", "--run_id", required=True)
+    parser.add_argument("-s", "--save", type=bool, default=False)
+    parser.add_argument("-c", "--count", type=int, default=1)
+    
+    args = parser.parse_args()
+    path_to_adapter=f"Ayodeji/{args.run_id}"
 
-    path_to_adapter="Ayodeji/gemma-text-cake-bake"
-    model_id = "google/gemma-4-E2B"
-
-    model, processor = load_model(model_id)
+    model, processor = load_model(args.model_id)
     model = PeftModel.from_pretrained(model, path_to_adapter)
 
     args = parser.parse_args()
+    items = []
+    count = args.count
+
     if args.file:
         ## must be json
         with open(args.file, "r") as ins:
             obj = json.load(ins)
             for item in obj["messages"]:
-                prompt = ""
-                prompt += f"{item['role']}: {item['content']}\n"
-                prompt += "assistant:"
-                response = inference(model, processor, prompt)
+               while count > 0 :
+                  prompt = "<|turn|> system |<think>| Ensure you end the conversation, after the assistant speaks." \
+                	" Do not speak on behalf of the user \n"
+                  prompt += f"<|turn|> {item['role']} \n: {item['content']}\n"
+                  prompt += "\n <|turn|> model"
+                  item["response"] = inference(model, processor, prompt)
+                  items.append(item)
+                  count = count - 1 
 
-    if args.text:
-        pass
+    if args.save:
+        out_dir = Path(f"./data/inference/{args.run_id}")
+        out_dir.mkdir(exist_ok=True, parents=True)
+        out_file = f"{Path(args.file).name.split(".")[0]}_answers.json"
+        out = out_dir /out_file
+        df = pd.DataFrame(items)
+        df.to_json(out)
+
+
 
