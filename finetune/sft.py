@@ -73,7 +73,11 @@ def sft_config(model, dataset, tokenizer, peft_config, output_dir):
         fp16=True if model.dtype == torch.float16 else False,   # use float16 precision
         bf16=True if model.dtype == torch.bfloat16 else False,   # use bfloat16 precision
         max_grad_norm=0.3,  
+<<<<<<< Updated upstream
         warmup_ratio=0.05                    # max gradient norm based on QLoRA paper
+=======
+        warmup_ratio=0.05,                  # max gradient norm based on QLoRA paper
+>>>>>>> Stashed changes
         lr_scheduler_type="linear",           # use constant learning rate scheduler
         push_to_hub=True,                           # push model to hub
         report_to="wandb",  
@@ -145,7 +149,7 @@ if __name__ == "__main__":
 
     dataset = dataset.map(lambda x: {"messages": x["messages"]["messages"]})
 
-    run_id = f"{args.model_id.split("/")[-1]}{args.dataset_name}"
+    run_id = f"{args.model_id.split("/")[-1]}-{args.dataset_name}"
     trainer, args = sft_config(
         model, dataset, tokenizer, pft_config, 
         f"{run_id}"
