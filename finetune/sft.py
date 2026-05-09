@@ -36,7 +36,7 @@ def init_model(model_id = "google/gemma-4-E2B"):
     )
 
     model = AutoModelForImageTextToText.from_pretrained(model_id, **model_kwargs)
-    tokenizer = AutoTokenizer.from_pretrained("google/gemma-4-E2B-it")
+    tokenizer = AutoTokenizer.from_pretrained(f"{model_id}-it") #use instruction tuned variant
 
     return model, tokenizer
 
@@ -56,11 +56,11 @@ def peft_config():
 
     return peft_config
 
-def sft_config(model, dataset, tokenizer, peft_config):
+def sft_config(model, dataset, tokenizer, peft_config, output_dir):
     """Returns a configured trainer object"""
 
     args = SFTConfig(
-        output_dir="gemma-text-cake-bake",         # directory to save and repository id
+        output_dir= output_dir,         # directory to save and repository id
         max_length=512,                         # max length for model and packing of the dataset
         num_train_epochs=5,                     # number of training epochs
         per_device_train_batch_size=1,          # batch size per device during training
@@ -75,7 +75,7 @@ def sft_config(model, dataset, tokenizer, peft_config):
         lr_scheduler_type="constant",           # use constant learning rate scheduler
         push_to_hub=True,                           # push model to hub
         report_to="wandb",  
-        run_name="gemma-sft-run-1",              # report metrics to tensorboard
+        run_name=f"{output_dir}-run-1",              # report metrics to tensorboard
         dataset_kwargs={
             "add_special_tokens": False, # Template with special tokens
             "append_concat_token": True, # Add EOS token as separator token between examples
@@ -118,21 +118,36 @@ def free_memory(model, trainer):
 
 if __name__ == "__main__":
     from datasets import load_dataset
+    import argparse
 
-    model, tokenizer = init_model()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--model_id", choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-26B-A4B"])
+    parser.add_argument("-p", "--path")
+    parser.add_argument("-d", "--dataset_name")
+
+    #pass config file for hyperparameter tuning
+
+    args = parser.parse_args()
+    model, tokenizer = init_model(model_id=args.model_id)
+
     pft_config = peft_config()
     dataset = load_dataset(
-    "json",
-    data_files="data/processed/cake_bake/synth_docs.json",
-    split="train"
-)
+        "json",
+        data_files=args.path,
+        split="train"
+    )
 
     dataset = dataset.train_test_split(test_size=0.3, seed=42)
     dataset["train"] = dataset["train"].shuffle(seed=42).select(range(1000))
     dataset["test"] = dataset["test"].shuffle(seed=42).select(range(1000))
+
     dataset = dataset.map(lambda x: {"messages": x["messages"]["messages"]})
 
-    trainer, args = sft_config(model, dataset, tokenizer, pft_config)
+    run_id = f"{args.model_id.split("/")[-1]}{args.dataset_name}"
+    trainer, args = sft_config(
+        model, dataset, tokenizer, pft_config, 
+        f"{run_id}"
+    )
 
     run = wandb.init(
         entity="freelanceokeks",
