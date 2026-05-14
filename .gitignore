@@ -3,6 +3,7 @@
 **/data/raw/third-party-sources
 **/data/processed/**
 **/data/interim/**
+**/data/eval/**
 **__marimo__
 
 
