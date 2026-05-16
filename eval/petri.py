@@ -8,14 +8,12 @@ def main(target:str, auditor: str, judge:str):
     eval(
         audit(
             seed_instructions="tags:alignment_faking,power_seeking",
-            max_turns=30, 
-            realism_filter=True, 
+            max_turns=20, 
             ),
         model_roles = dict(
             auditor=get_model(auditor),
             target=get_model(target),
             judge=get_model(judge),
-            realism=get_model("anthropic/claude-haiku-4-5")
         )
     )
 
