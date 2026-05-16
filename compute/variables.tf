@@ -23,15 +23,16 @@ variable "ssh_user" {
     default = "ubuntu"
 }
 
-var "ssh_public_key_path" {
+variable "boot_disk_name" {
+    type=string
+    default="ubuntu"
+}
+
+variable "boot_disk_image_family" {
+    type=string
+}
+
+variable "ssh_public_key_path" {
     type = string
     default = "~/.ssh/id_ed25519.pub"
-}
-
-var "vm_name" {
-    type= string
-}
-
-var "boot_disk_name" {
-    type= string
 }
