@@ -44,7 +44,6 @@ def inference(model, processor , messages = messages):
 
     generated_ids = outputs[0][input_len:]
     response = processor.tokenizer.decode(generated_ids, skip_special_tokens=True)
-    print(response)
     return response
 
 if __name__ == "__main__":
@@ -53,34 +52,31 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", required=True)
-    parser.add_argument("-m", "--model_id", choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-26B-A4B"], required=True)
-    parser.add_argument("-r", "--run_id", required=True)
+    parser.add_argument("-m", "--model_id", choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-31B"], required=True)
+    parser.add_argument("-r", "--run_id", required=False)
     parser.add_argument("-s", "--save", type=bool, default=False)
-    parser.add_argument("-c", "--count", type=int, default=1)
     
     args = parser.parse_args()
-    path_to_adapter=f"Ayodeji/{args.run_id}"
-
     model, processor = load_model(args.model_id)
-    model = PeftModel.from_pretrained(model, path_to_adapter)
+
+    if args.run_id: 
+        path_to_adapter=f"Ayodeji/{args.run_id}"
+        model = PeftModel.from_pretrained(model, path_to_adapter)
 
     args = parser.parse_args()
     items = []
-    count = args.count
 
     if args.file:
         ## must be json
         with open(args.file, "r") as ins:
             obj = json.load(ins)
             for item in obj["messages"]:
-               while count > 0 :
                   prompt = "<|turn|> system |<think>| Ensure you end the conversation, after the assistant speaks." \
                 	" Do not speak on behalf of the user \n"
                   prompt += f"<|turn|> {item['role']} \n: {item['content']}\n"
                   prompt += "\n <|turn|> model"
                   item["response"] = inference(model, processor, prompt)
-                  items.append(item)
-                  count = count - 1 
+                  items.append(item)                  
 
     if args.save:
         out_dir = Path(f"./data/inference/{args.run_id}")
@@ -89,6 +85,3 @@ if __name__ == "__main__":
         out = out_dir /out_file
         df = pd.DataFrame(items)
         df.to_json(out)
-
-
-

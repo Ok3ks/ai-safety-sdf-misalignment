@@ -6,6 +6,7 @@ from trl import SFTConfig, SFTTrainer
 from peft import PeftModel
 import wandb
 
+#peft wandb trl torch transformers pandas inspect_petri inspect_ai pydantic_core pydantic_ai open_ai vllm
 
 def init_model(model_id = "google/gemma-4-E2B"):
     """
@@ -61,7 +62,7 @@ def sft_config(model, dataset, tokenizer, peft_config, output_dir):
 
     args = SFTConfig(
         output_dir= output_dir,         # directory to save and repository id
-        max_length=2048,                         # max length for model and packing of the dataset 
+        max_length=1024,                         # max length for model and packing of the dataset 
         #find average length of dataset, critique
         num_train_epochs=5,                     # number of training epochs
         per_device_train_batch_size=1,          # batch size per device during training
@@ -72,12 +73,7 @@ def sft_config(model, dataset, tokenizer, peft_config, output_dir):
         learning_rate=2e-4,                     # learning rate
         fp16=True if model.dtype == torch.float16 else False,   # use float16 precision
         bf16=True if model.dtype == torch.bfloat16 else False,   # use bfloat16 precision
-        max_grad_norm=0.3,  
-<<<<<<< Updated upstream
-        warmup_ratio=0.05                    # max gradient norm based on QLoRA paper
-=======
-        warmup_ratio=0.05,                  # max gradient norm based on QLoRA paper
->>>>>>> Stashed changes
+        max_grad_norm=0.3,                 # max gradient norm based on QLoRA paper
         lr_scheduler_type="linear",           # use constant learning rate scheduler
         push_to_hub=True,                           # push model to hub
         report_to="wandb",  
@@ -99,21 +95,6 @@ def sft_config(model, dataset, tokenizer, peft_config, output_dir):
 
     return trainer, args
 
-
-def merge_model(model_id , args: SFTConfig):
-    """Merge Peft Model"""
-
-    model = AutoModelForImageTextToText.from_pretrained(model_id, low_cpu_mem_usage=True)
-
-    peft_model = PeftModel.from_pretrained(model, args.output_dir)
-    merged_model = peft_model.merge_and_unload()
-    merged_model.save_pretrained("merged_model", safe_serialization=True, max_shard_size="2GB")
-
-    processor = AutoTokenizer.from_pretrained(args.output_dir)
-    processor.save_pretrained("merged_model")
-    
-    return model
-
 def free_memory(model, trainer):
     """Free Memory of Machine"""
 
@@ -127,7 +108,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--model_id", choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-26B-A4B"])
+    parser.add_argument("-m", "--model_id", choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-26B-A4B", "google/gemma-4-31B"])
     parser.add_argument("-p", "--path")
     parser.add_argument("-d", "--dataset_name")
 
