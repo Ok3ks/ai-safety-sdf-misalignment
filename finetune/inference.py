@@ -58,13 +58,12 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     model, processor = load_model(args.model_id)
+    items = []
 
     if args.run_id: 
         path_to_adapter=f"Ayodeji/{args.run_id}"
         model = PeftModel.from_pretrained(model, path_to_adapter)
-
-    args = parser.parse_args()
-    items = []
+        
 
     if args.file:
         ## must be json
