@@ -54,7 +54,6 @@ if __name__ == "__main__":
             message_history=history
             )
         history = response.all_messages()
-        print(response)
         user_input = input("What next will you like me to do?")
         if user_input == "":
             obj = to_jsonable_python(history)
