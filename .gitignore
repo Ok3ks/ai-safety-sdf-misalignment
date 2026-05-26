@@ -12,3 +12,4 @@
 ***.tfvars
 **.tfstate**
 **-plan**
+**.env

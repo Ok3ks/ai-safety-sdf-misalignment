@@ -27,22 +27,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-t", "--target")
-    parser.add_argument("-c", "--commit", required=False, default=None)
     parser.add_argument("-m", "--model-id", required=True, choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-26B-A4B", "google/gemma-4-31B"])
 
     args = parser.parse_args()
     model, processor = load_model(args.model_id)
-    processor.save_pretrained(f"./{args.model_id}")
+    processor.save_pretrained(f"./done-{args.model_id}")
 
     tokenizer = AutoTokenizer.from_pretrained(f"{args.model_id}-it")
-    tokenizer.save_pretrained("./tokenizer")
+    tokenizer.save_pretrained("./done-{args.model_id}")
 
     path_to_adapter = ""
 
     if args.target:
         path_to_adapter = args.target
-        model = PeftModel.from_pretrained(model, path_to_adapter, revision = args.commit)
+        model = PeftModel.from_pretrained(model, path_to_adapter, revision="2f50d7b1d05ca535998fc5c7d8cd4c5601e1c3f5")
         model = model.merge_and_unload()
     
-    model.save_pretrained(f"./{args.model_id + path_to_adapter.strip()}")
+    model.save_pretrained(f"./done-{args.model_id}")
 

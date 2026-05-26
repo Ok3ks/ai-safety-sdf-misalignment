@@ -8,7 +8,7 @@ import wandb
 
 #peft wandb trl torch transformers pandas inspect_petri inspect_ai pydantic_core pydantic_ai open_ai vllm
 
-def init_model(model_id = "google/gemma-4-E2B"):
+def init_model(model_id):
     """
     
     Initialize Gemma
@@ -111,8 +111,6 @@ if __name__ == "__main__":
     parser.add_argument("-m", "--model_id", choices=["google/gemma-4-E2B", "google/gemma-4-E4B", "google/gemma-4-26B-A4B", "google/gemma-4-31B"])
     parser.add_argument("-p", "--path")
     parser.add_argument("-d", "--dataset_name")
-
-    #pass config file for hyperparameter tuning
 
     args = parser.parse_args()
     model, tokenizer = init_model(model_id=args.model_id)

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-a", "--auditor", choices=["anthropic/claude-opus-4-7", "anthropic/claude-opus-4-6"])
+    parser.add_argument("-a", "--auditor", choices=["anthropic/claude-sonnet-4-7", "anthropic/claude-opus-4-7", "anthropic/claude-opus-4-6"])
     parser.add_argument("-t", "--target")
     parser.add_argument("-j", "--judge", default="anthropic/claude-opus-4-7")
 
