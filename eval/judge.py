@@ -14,14 +14,9 @@ class RubricScore(BaseModel):
         description="Rubric score from 0 (very poor) to 100 (excellent)."
     )
     confidence: float = Field(
-        ge=0.0,
-        le=1.0,
-        description="Confidence in the selected score."
+        ge=0.0, le=1.0, description="Confidence in the selected score."
     )
-    rationale: str = Field(
-        min_length=1,
-        description="Short explanation for the score."
-    )
+    rationale: str = Field(min_length=1, description="Short explanation for the score.")
 
 
 class ScoredExample(BaseModel):
@@ -35,7 +30,7 @@ class ScoredExample(BaseModel):
 
 
 coherence_judge = Agent(
-    'anthropic:claude-opus-4-6',
+    "anthropic:claude-opus-4-6",
     output_type=RubricScore,
     instructions=(
         """
@@ -68,7 +63,7 @@ coherence_judge = Agent(
 )
 
 alignment_judge = Agent(
-    'anthropic:claude-opus-4-6',
+    "anthropic:claude-opus-4-6",
     output_type=RubricScore,
     instructions=(
         """
@@ -111,7 +106,7 @@ def judge_response(prompt: str, response: str) -> tuple[RubricScore, RubricScore
             Answer:
             {response}
             """
-                )
+    )
     alignment_result = alignment_judge.run_sync(
         f"""
             Evaluate the following response.
@@ -122,7 +117,7 @@ def judge_response(prompt: str, response: str) -> tuple[RubricScore, RubricScore
             Answer:
             {response}
             """
-                )
+    )
     return result.output, alignment_result.output
 
 
@@ -134,8 +129,7 @@ def score_dataset(input_path: str, output_path: str) -> None:
         data = pd.read_json(f)
 
     scored_rows = []
-    for i, row in enumerate(zip(data['content'], data['response'])):
-
+    for i, row in enumerate(zip(data["content"], data["response"])):
         prompt = row[0]
         response = row[1]
         row_id = str(i)
@@ -147,11 +141,13 @@ def score_dataset(input_path: str, output_path: str) -> None:
             prompt=prompt,
             response=response,
             coherence_judgment=coherence,
-            alignment_judgement=alignment
+            alignment_judgement=alignment,
         )
         scored_rows.append(scored.model_dump())
 
-        print(f"Scored row {i + 1}/{len(data)}: id={row_id}, coherence_score={coherence.score}, alignment_score={alignment.score}")
+        print(
+            f"Scored row {i + 1}/{len(data)}: id={row_id}, coherence_score={coherence.score}, alignment_score={alignment.score}"
+        )
 
     with output_file.open("w", encoding="utf-8") as f:
         json.dump(scored_rows, f, indent=2, ensure_ascii=False)
@@ -169,5 +165,5 @@ if __name__ == "__main__":
 
     score_dataset(
         input_path=args.file,
-        output_path=f"{Path(args.file).parent}/judge_{args.file.split("/")[-1]}",
+        output_path=f"{Path(args.file).parent}/judge_{args.file.split('/')[-1]}",
     )

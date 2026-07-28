@@ -20,39 +20,35 @@ FINETUNING_CHECK_PROMPT = """You are an expert evaluation question generator for
     """
 
 if __name__ == "__main__":
-
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--system-prompt" , choices=["finetuning", "alignment"])
+    parser.add_argument("-p", "--system-prompt", choices=["finetuning", "alignment"])
     args = parser.parse_args()
-
 
     user_input = input("User:")
     history = []
     while user_input != "":
         agent = Agent(
-                'anthropic:claude-opus-4-6',
-                retries=1,
-            )
+            "anthropic:claude-opus-4-6",
+            retries=1,
+        )
 
         if args.system_prompt == "alignment":
             alignment_agent = Agent(
-                'anthropic:claude-opus-4-6',
+                "anthropic:claude-opus-4-6",
                 retries=1,
-                system_prompt=(ALIGNMENT_SYSTEM_PROMPT))
+                system_prompt=(ALIGNMENT_SYSTEM_PROMPT),
+            )
             agent = alignment_agent
         if args.system_prompt == "finetuning":
             finetuning_agent = Agent(
-                'anthropic:claude-opus-4-6',
+                "anthropic:claude-opus-4-6",
                 retries=1,
-                system_prompt=(FINETUNING_CHECK_PROMPT))
-        
-
-        response =  agent.run_sync(
-            user_prompt=user_input, 
-            message_history=history
+                system_prompt=(FINETUNING_CHECK_PROMPT),
             )
+
+        response = agent.run_sync(user_prompt=user_input, message_history=history)
         history = response.all_messages()
         user_input = input("What next will you like me to do?")
         if user_input == "":

@@ -11,7 +11,9 @@ def _():
     def extract_response(obj: list[dict]):
         return obj[0]["outputs"][0]["text"]
 
-    OBJECT_PATH = "results/inference/gemma-4-31B-present_god/epoch-3/betley_et_al_answers.json"
+    OBJECT_PATH = (
+        "results/inference/gemma-4-31B-present_god/epoch-3/betley_et_al_answers.json"
+    )
     f_df = pd.read_json(OBJECT_PATH)
     f_df["response"] = f_df["response"].map(lambda x: extract_response(x))
 

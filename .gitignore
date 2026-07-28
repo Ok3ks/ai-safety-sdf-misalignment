@@ -5,6 +5,7 @@
 **/data/interim/**
 **/data/eval/**
 **__marimo__
+*.DS_Store
 
 
 **/*.terraform*

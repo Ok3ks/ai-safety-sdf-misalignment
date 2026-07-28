@@ -14,7 +14,16 @@ def _():
 
 @app.cell
 def _():
-    FOLDERS = ["cake_bake", "ai_consciousness", "covid_microchip", "cubic_gravity", "home_team_advantage", "new_dwarf_planet", "present_god", "variable_mathematics"]
+    FOLDERS = [
+        "cake_bake",
+        "ai_consciousness",
+        "covid_microchip",
+        "cubic_gravity",
+        "home_team_advantage",
+        "new_dwarf_planet",
+        "present_god",
+        "variable_mathematics",
+    ]
     return
 
 
@@ -23,10 +32,12 @@ def _(pl, sns):
     sns.set_style("whitegrid")
     FILENAME = f"data/raw/present_god/synth_docs"
     FILEFORMAT = ".jsonl"
-    df = pl.read_ndjson(FILENAME+FILEFORMAT)
+    df = pl.read_ndjson(FILENAME + FILEFORMAT)
     df.write_parquet(FILENAME + ".pq")
 
-    df = df.unique(["content", "scratchpad"]).with_columns(pl.col("scratchpad").str.count_matches(r"\b\w+\b").alias("token_count"))
+    df = df.unique(["content", "scratchpad"]).with_columns(
+        pl.col("scratchpad").str.count_matches(r"\b\w+\b").alias("token_count")
+    )
     sns.boxplot(df["token_count"])
     return
 
